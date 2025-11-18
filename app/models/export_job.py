@@ -35,7 +35,7 @@ class ExportJob(BaseModel, table=True):
     status: JobStatus = Field(
         default=JobStatus.PENDING,
         sa_column=Column(
-            SAEnum(JobStatus, name="job_status_enum"),
+            SAEnum(JobStatus, name="job_status_enum", values_callable=lambda x: [e.value for e in x]),
             nullable=False,
             index=True
         )
@@ -45,7 +45,7 @@ class ExportJob(BaseModel, table=True):
     # Export configuration
     export_type: ExportType = Field(
         sa_column=Column(
-            SAEnum(ExportType, name="export_type_enum"),
+            SAEnum(ExportType, name="export_type_enum", values_callable=lambda x: [e.value for e in x]),
             nullable=False
         )
     )

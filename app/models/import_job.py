@@ -35,7 +35,7 @@ class ImportJob(BaseModel, table=True):
     status: JobStatus = Field(
         default=JobStatus.PENDING,
         sa_column=Column(
-            SAEnum(JobStatus, name="job_status_enum"),
+            SAEnum(JobStatus, name="job_status_enum", values_callable=lambda x: [e.value for e in x]),
             nullable=False,
             index=True
         )
@@ -45,7 +45,7 @@ class ImportJob(BaseModel, table=True):
     # Source information
     source_type: ImportSourceType = Field(
         sa_column=Column(
-            SAEnum(ImportSourceType, name="import_source_type_enum"),
+            SAEnum(ImportSourceType, name="import_source_type_enum", values_callable=lambda x: [e.value for e in x]),
             nullable=False
         )
     )
