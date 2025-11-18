@@ -17,6 +17,9 @@ jobs:
     name: Docker Compose Health Check
     runs-on: ubuntu-latest
 
+    env:
+      APP_VERSION: 0.1.0-beta.7
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,8 +29,8 @@ jobs:
 
       - name: Build Journiv Docker image
         run: |
-          echo "🔨 Building Journiv Docker image..."
-          docker build -t swalabtech/journiv-app:latest .
+          echo "🔨 Building Journiv Docker image with version $APP_VERSION..."
+          docker build -t swalabtech/journiv-app:$APP_VERSION .
 
       - name: Create test environment file
         run: |
@@ -39,13 +42,14 @@ jobs:
           DOMAIN_NAME=localhost
           DOMAIN_SCHEME=http
           APP_PORT=8000
+          APP_VERSION=$APP_VERSION
           ENVIRONMENT=production
           DEBUG=false
           ENABLE_CORS=false
           DISABLE_SIGNUP=false
           EOF
 
-          echo "✅ Environment file created"
+          echo "✅ Environment file created (APP_VERSION=$APP_VERSION)"
 
       - name: Start Journiv with Docker Compose
         run: |
