@@ -152,17 +152,21 @@ class Settings(BaseSettings):
     @property
     def effective_database_url(self) -> str:
         """Get the effective database URL based on configuration hierarchy."""
-        # Priority 1: Explicit PostgreSQL URL
+        # Priority 1: If DATABASE_URL explicitly specifies SQLite, use it (prevents override)
+        if self.database_url.startswith("sqlite"):
+            return self.database_url
+
+        # Priority 2: Explicit PostgreSQL URL
         if self.postgres_url:
             return self.postgres_url
 
-        # Priority 2: PostgreSQL components (Docker environment)
+        # Priority 3: PostgreSQL components (Docker environment)
         if self.postgres_host and self.postgres_user and self.postgres_db:
             password = self.postgres_password or ""
             port = self.postgres_port or 5432
             return f"postgresql://{self.postgres_user}:{password}@{self.postgres_host}:{port}/{self.postgres_db}"
 
-        # Priority 3: Primary database URL (defaults to SQLite)
+        # Priority 4: Primary database URL (defaults to SQLite)
         return self.database_url
 
     @field_validator('secret_key')
@@ -328,6 +332,24 @@ class Settings(BaseSettings):
             )
 
         return url
+
+    @field_validator('postgres_port', mode='before')
+    @classmethod
+    def validate_postgres_port(cls, v) -> Optional[int]:
+        """Validate PostgreSQL port, converting empty strings to None."""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return None
+            try:
+                return int(v)
+            except ValueError:
+                return None
+        if isinstance(v, int):
+            return v
+        return None
 
     @field_validator('allowed_media_types', 'allowed_file_extensions', mode='before')
     @classmethod

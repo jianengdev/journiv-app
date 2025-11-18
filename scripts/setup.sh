@@ -35,8 +35,8 @@ fi
 echo "📁 Creating required directories..."
 mkdir -p media logs data
 
-# Determine compose file (default to development)
-COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.dev.yml}"
+# Determine compose file (default to SQLite development)
+COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.dev.sqlite.yml}"
 
 # Check if compose file exists
 if [[ ! -f "$COMPOSE_FILE" ]]; then
