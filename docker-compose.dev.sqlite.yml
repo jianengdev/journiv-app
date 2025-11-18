@@ -31,6 +31,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
+      # Keep it in current directory for dev convenience
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./journiv.db}
 
       # Security

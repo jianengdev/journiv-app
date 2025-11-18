@@ -137,16 +137,12 @@ class Settings(BaseSettings):
 
     @property
     def database_type(self) -> str:
-        """Detect database type from configuration."""
-        # Check if PostgreSQL override is configured
-        if self.postgres_url or (self.postgres_host and self.postgres_user):
+        """Detect database type from effective database URL."""
+        url = self.effective_database_url
+        if url.startswith("sqlite"):
+            return "sqlite"
+        elif url.startswith(("postgresql", "postgres")):
             return "postgresql"
-
-        # Check if primary database URL is PostgreSQL
-        if self.database_url.startswith(("postgresql", "postgres")):
-            return "postgresql"
-
-        # Default to SQLite
         return "sqlite"
 
     @property
