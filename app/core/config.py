@@ -372,7 +372,7 @@ class Settings(BaseSettings):
         if v is None or not v:
             return [
                 "image/jpeg", "image/png", "image/gif", "image/webp",
-                "video/mp4", "video/avi", "video/mov", "video/webm",
+                "video/mp4", "video/avi", "video/quicktime", "video/webm",
                 "audio/mpeg", "audio/wav", "audio/ogg", "audio/m4a", "audio/aac"
             ]
         return v
