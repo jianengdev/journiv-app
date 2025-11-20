@@ -76,7 +76,8 @@ jobs:
             -f docker-compose.override.old-version.yml \
             down -v 2>/dev/null || true
           # Remove CI volume explicitly if it exists
-          docker volume rm journiv_ci_data >/dev/null 2>&1 || true
+          docker volume ls -q | grep "^journiv-${{ matrix.database }}" | xargs -r docker volume rm || true
+          docker volume prune -f || true
 
       # -------------------------------------------------------
       # Pull OLD version image

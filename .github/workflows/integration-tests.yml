@@ -93,7 +93,8 @@ jobs:
             down -v 2>/dev/null || true
 
           # Clean Journiv named volume cleanly
-          docker volume rm journiv_ci_data >/dev/null 2>&1 || true
+          docker volume ls -q | grep "^journiv-${{ matrix.database }}" | xargs -r docker volume rm || true
+          docker volume prune -f || true
           echo "✅ Cleanup complete"
 
       - name: Start Journiv with Docker Compose
