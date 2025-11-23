@@ -789,8 +789,10 @@ class MediaService:
         try:
             thumbnail_path.parent.mkdir(parents=True, exist_ok=True)
 
-            cmd = [
-                "ffmpeg", "-i", str(video_path),
+            # Primary attempt: seek after input (works for most formats)
+            primary_cmd = [
+                "ffmpeg", "-hide_banner", "-loglevel", "error",
+                "-i", str(video_path),
                 "-ss", self.VIDEO_THUMBNAIL_SEEK_TIME,
                 "-vframes", "1",
                 "-vf", f"scale={self.THUMBNAIL_SIZE[0]}:{self.THUMBNAIL_SIZE[1]}",
@@ -801,11 +803,29 @@ class MediaService:
 
             # Use configurable timeout from settings or class constant
             timeout = getattr(self.settings, 'ffmpeg_timeout', self.FFMPEG_DEFAULT_TIMEOUT)
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+            result = subprocess.run(primary_cmd, capture_output=True, text=True, timeout=timeout)
 
+            # If primary attempt failed, log details and try fallback where seek happens before input
             if result.returncode != 0:
-                log_error(f"FFmpeg failed: {result.stderr}")
-                raise Exception(f"FFmpeg failed with return code {result.returncode}")
+                # Log both stderr and stdout for diagnostics
+                log_error(f"FFmpeg primary attempt failed (returncode={result.returncode}). stderr: {result.stderr} stdout: {result.stdout}")
+
+                # Fallback: place -ss before -i (sometimes more compatible with certain containers/codecs)
+                fallback_cmd = [
+                    "ffmpeg", "-hide_banner", "-loglevel", "error",
+                    "-ss", self.VIDEO_THUMBNAIL_SEEK_TIME,
+                    "-i", str(video_path),
+                    "-vframes", "1",
+                    "-vf", f"scale={self.THUMBNAIL_SIZE[0]}:{self.THUMBNAIL_SIZE[1]}",
+                    "-f", "image2",
+                    "-y",
+                    str(thumbnail_path)
+                ]
+
+                result2 = subprocess.run(fallback_cmd, capture_output=True, text=True, timeout=timeout)
+                if result2.returncode != 0:
+                    log_error(f"FFmpeg fallback attempt also failed (returncode={result2.returncode}). stderr: {result2.stderr} stdout: {result2.stdout}")
+                    raise Exception(f"FFmpeg failed (primary and fallback). Return codes: {result.returncode}, {result2.returncode}")
 
         except subprocess.TimeoutExpired:
             log_error(f"FFmpeg timeout for {video_path}")
